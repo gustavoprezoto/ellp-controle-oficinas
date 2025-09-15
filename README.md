@@ -1,62 +1,130 @@
-# Projeto ELLP - Controle de Oficinas
+# Projeto ELLP - Controle de Oficinas  
 
-## Contexto Acadêmico
+<p align="center">
+  <img src="imagem/logo.png" alt="Logo ELLP" width="180">
+</p>
 
-Este projeto está sendo desenvolvido no âmbito da disciplina **Oficina de Integração 2** (ES47C - ES71) do curso de Engenharia de Software da **UTFPR - Câmpus Cornélio Procópio**.
-
-* **Professor responsável:** Prof. Antonio Carlos Fernandes da Silva
-  
----
-
-## Descrição
-
-O **Projeto ELLP** consiste em uma plataforma web voltada ao gerenciamento de oficinas de ensino do projeto de extensão ELLP (Ensino Lúdico de Lógica e Programação).
 
 ---
 
-## Funcionalidades Planejadas
+## 🤖 Sobre o Grupo ELLP  
 
-* **Autenticação e controle de acesso**: login seguro e permissões por perfil.
-* **Gestão de usuários**: cadastro de professores, tutores e alunos.
-* **Gestão de oficinas**: criação, edição, publicação/despublicação e controle de vagas.
-* **Inscrições de alunos**: catálogo de oficinas com possibilidade de inscrição.
-* **Registro de presença**: controle de participação em encontros.
-* **Certificação**: emissão de certificados em PDF para alunos aprovados.
-* **Histórico acadêmico**: consulta de oficinas concluídas e certificados gerados.
+O **ELLP (Ensino Lúdico de Lógica e Programação)** é um projeto de extensão universitária iniciado em **2014 na UTFPR – Câmpus Cornélio Procópio**.  
 
----
+Ele atua como uma **porta de entrada para a extensão**, permitindo que os alunos universitários transmitam seus conhecimentos teóricos de forma prática para a comunidade.  
 
-## Tecnologias Previstas
-
-* **Frontend**: React.js + Material UI
-* **Backend**: Python + FastAPI
-* **Banco de Dados**: PostgreSQL
-* **Testes Automatizados**: Jest, React Testing Library, Pytest, Cypress/Playwright
+Seus principais objetivos são:  
+- **Ampliar o acesso à educação** para comunidades em situação de vulnerabilidade social.  
+- **Oferecer infraestrutura e conhecimento** gerados dentro da universidade.  
+- Aproximar **crianças e adolescentes de escolas públicas, ONGs e creches** do ambiente acadêmico, muitas vezes visto como inacessível.  
 
 ---
 
-## Estrutura de Desenvolvimento
+## 🎯 Sobre este Projeto (Controle de Oficinas)  
 
-O projeto será desenvolvido em etapas, organizadas em sprints:
+O **Controle de Oficinas** é uma plataforma web desenvolvida para auxiliar na **gestão das atividades do Grupo ELLP**, oferecendo:  
 
-**Planejamento (até 15/09)**
+- Gestão de oficinas (criação, edição, publicação e controle de vagas).  
+- Cadastro e autenticação de usuários (professores, tutores e alunos).  
+- Catálogo de oficinas e inscrições de alunos.  
+- Registro de presença e conclusão.  
+- Emissão de certificados em PDF.  
+- Histórico acadêmico dos participantes.  
 
-* Documento de requisitos.
-* Criação dos repositórios e setup inicial.
-
-**Sprint 1**
-
-* Modelagem final do banco de dados.
-* Módulo de usuários (cadastro, autenticação e permissões).
-* CRUD de oficinas.
-* Catálogo de oficinas e inscrições.
-
-**Sprint 2**
-
-* Registro de presença.
-* Marcação de oficinas como concluídas.
-* Emissão de certificados em PDF.
-* Histórico do aluno.
-* Testes finais e refinamentos de usabilidade.
+Esse sistema busca **organizar e otimizar a logística das oficinas**, facilitando a interação entre alunos, tutores e professores, além de garantir maior acessibilidade à comunidade atendida.  
 
 ---
+
+## 🎓 Contexto Acadêmico  
+
+Este projeto está sendo desenvolvido no âmbito da disciplina **Oficina de Integração 2** (ES47C - ES71) do curso de Engenharia de Software da **UTFPR – Câmpus Cornélio Procópio**.  
+
+- **Professor responsável:** Prof. Antonio Carlos Fernandes da Silva  
+
+---
+## 📑 Planejamento
+
+O planejamento detalhado do desenvolvimento do projeto está disponível na pasta de documentação.  
+Acesse clicando no link abaixo:  
+
+➡️ [Planejamento - Controle de Oficinas](documentação/Planejamento%20-%20Controle%20de%20Oficinas.md)
+
+### Resumo do Planejamento
+
+**Plataforma de Controle de Oficinas de Ensino**  
+O documento descreve o plano de desenvolvimento para a plataforma web destinada a gerenciar o ciclo de vida das oficinas do projeto ELLP, envolvendo Professores, Tutores, Alunos e a emissão de certificados.
+
+---
+
+### 1️⃣ Requisitos Funcionais
+| Requisito | Título | Prioridade |
+|-----------|-------|-----------|
+| RF-001 | Usuário pode ser administrador (cadastra usuários e altera templates de certificado) | Média |
+| RF-002 | Login e logout seguros | Alta |
+| RF-003 | Painel para gerenciar oficinas ministradas | Alta |
+| RF-004 | Criar e editar oficinas (tema, descrição, datas, horários, limite de vagas e pré-requisitos) | Alta |
+| RF-005 | Publicar ou despublicar oficinas | Alta |
+| RF-006 | Visualizar lista de alunos inscritos | Alta |
+| RF-007 | Registrar presença dos alunos | Alta |
+| RF-008 | Marcar oficina como "Concluída" liberando certificados | Alta |
+| RF-009 | Aluno verifica participação e comprovante | Baixa |
+| RF-010 | Comprovante enviado por e-mail após conclusão | Alta |
+
+---
+
+### 2️⃣ Arquitetura em Alto Nível
+
+**Componentes:**
+1. **Frontend (Server-side Rendering)**  
+   - Aplicação SSR onde o backend gera páginas front-end.
+2. **Backend (Servidor)**  
+   - Módulo de Autenticação e Usuários  
+   - Módulo de Oficinas  
+   - Módulo de Alunos/Certificados (geração de PDF)  
+   - Módulo de Server-Side Rendering
+3. **Banco de Dados**  
+   - PostgreSQL para armazenar usuários, oficinas, inscrições e presenças.
+
+---
+
+### 3️⃣ Estratégia de Automação de Testes
+
+**Pirâmide de Testes:**
+- **Unidade:** Jest + React Testing Library (frontend), Pytest (backend)  
+- **Integração:** React Testing Library + Pytest-Django  
+- **Ponta a ponta:** Cypress ou Playwright  
+
+---
+
+### 4️⃣ Tecnologias Utilizadas
+
+- **Frontend:** React.js (Hooks, Context API), Material-UI, Axios  
+- **Backend:** Python + FastAPI  
+- **Banco de Dados:** PostgreSQL  
+
+---
+
+### 5️⃣ Cronograma
+
+**Planejamento (até 15/09):**  
+- Documento de planejamento e setup inicial dos repositórios  
+
+**Sprint 1:**  
+1. Setup inicial e modelagem do banco  
+2. Gestão de usuários (cadastro de professores, alunos e CRUD)  
+3. Gestão de oficinas (CRUD e publicação)  
+4. Catálogo e inscrição de alunos  
+
+**Sprint 2:**  
+1. Registro de presença e finalização de oficinas  
+2. Geração de certificados em PDF  
+3. Tela de histórico do aluno  
+4. Ajustes finais: testes, correções de bugs e melhorias de UX
+
+## 👨‍💻 Integrantes  
+
+- João Pedro de Araujo (RA: 2525852)  
+- Gustavo Prezoto Boca (RA: 2250373)  
+- Gabriel Henrique de Almeida Souza (RA: 2504162)  
+
+✍️ **Desenvolvido por alunos de Engenharia de Software – UTFPR Cornélio Procópio**  
