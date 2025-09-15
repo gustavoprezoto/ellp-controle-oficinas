@@ -1,7 +1,7 @@
 # Projeto ELLP - Controle de Oficinas  
 
 <p align="center">
-  <img src="imagem/logo.png" alt="Logo ELLP" width="180">
+  <img src="imagem/logo.jpg" alt="Logo ELLP" width="360">
 </p>
 
 
