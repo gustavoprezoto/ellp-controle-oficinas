@@ -1,4 +1,4 @@
-# Projeto ELLP - Ensino Lúdico de Lógica de Programação
+# Projeto ELLP - Controle de Oficinas
 
 ## Contexto Acadêmico
 
