@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 
-# Usar imports relativos
 from . import models, schemas
 
 def get_workshop(db: Session, workshop_id: int):
@@ -58,11 +57,9 @@ def enroll_student(db: Session, workshop_id: int, student_id: int):
     if not workshop:
         return None
 
-    # Verificar se há vagas disponíveis
     if len(workshop.students) >= workshop.max_students:
         raise ValueError("Workshop is full")
 
-    # Verificar se aluno já está inscrito
     if any(student.id == student_id for student in workshop.students):
         raise ValueError("Student already enrolled")
 

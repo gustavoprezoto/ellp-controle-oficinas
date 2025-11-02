@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 
-# Usar imports relativos
 from . import models, schemas
 from .auth import get_password_hash, get_user_by_email
 
@@ -14,7 +13,6 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    # Verificar se usuário já existe
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
         raise ValueError("Email already registered")
