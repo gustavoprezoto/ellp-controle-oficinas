@@ -5,7 +5,6 @@
 </p>
 
 
----
 
 ## 🤖 Sobre o Grupo ELLP  
 
@@ -18,7 +17,6 @@ Seus principais objetivos são:
 - **Oferecer infraestrutura e conhecimento** gerados dentro da universidade.  
 - Aproximar **crianças e adolescentes de escolas públicas, ONGs e creches** do ambiente acadêmico, muitas vezes visto como inacessível.  
 
----
 
 ## 🎯 Sobre este Projeto (Controle de Oficinas)  
 
@@ -33,7 +31,6 @@ O **Controle de Oficinas** é uma plataforma web desenvolvida para auxiliar na *
 
 Esse sistema busca **organizar e otimizar a logística das oficinas**, facilitando a interação entre alunos, tutores e professores, além de garantir maior acessibilidade à comunidade atendida.  
 
----
 
 ## 🎓 Contexto Acadêmico  
 
@@ -41,20 +38,20 @@ Este projeto está sendo desenvolvido no âmbito da disciplina **Oficina de Inte
 
 - **Professor responsável:** Prof. Antonio Carlos Fernandes da Silva  
 
----
+
 ## 📑 Planejamento
 
 O planejamento detalhado do desenvolvimento do projeto está disponível na pasta de documentação.  
 Acesse clicando no link abaixo:  
 
-➡️ [Planejamento - Controle de Oficinas](documentação/Planejamento%20-%20Controle%20de%20Oficinas.md)
+➡️ [Planejamento - Controle de Oficinas](https://github.com/gustavoprezoto/ellp-controle-oficinas/blob/main/Documenta%C3%A7%C3%A3o/Planejamento%20-%20Controle%20de%20Oficinas.pdf)
 
 ### Resumo do Planejamento
 
 **Plataforma de Controle de Oficinas de Ensino**  
 O documento descreve o plano de desenvolvimento para a plataforma web destinada a gerenciar o ciclo de vida das oficinas do projeto ELLP, envolvendo Professores, Tutores, Alunos e a emissão de certificados.
 
----
+
 
 ### 1️⃣ Requisitos Funcionais
 | Requisito | Título | Prioridade |
@@ -85,7 +82,7 @@ O documento descreve o plano de desenvolvimento para a plataforma web destinada 
 3. **Banco de Dados**  
    - PostgreSQL para armazenar usuários, oficinas, inscrições e presenças.
 
----
+
 
 ### 3️⃣ Estratégia de Automação de Testes
 
@@ -94,7 +91,7 @@ O documento descreve o plano de desenvolvimento para a plataforma web destinada 
 - **Integração:** React Testing Library + Pytest-Django  
 - **Ponta a ponta:** Cypress ou Playwright  
 
----
+
 
 ### 4️⃣ Tecnologias Utilizadas
 
@@ -102,20 +99,20 @@ O documento descreve o plano de desenvolvimento para a plataforma web destinada 
 - **Backend:** Python + FastAPI  
 - **Banco de Dados:** PostgreSQL  
 
----
+
 
 ### 5️⃣ Cronograma
 
 **Planejamento (até 15/09):**  
 - Documento de planejamento e setup inicial dos repositórios  
 
-**Sprint 1:**  
+**Sprint 1 (22/09 - 03/11):**  
 1. Setup inicial e modelagem do banco  
 2. Gestão de usuários (cadastro de professores, alunos e CRUD)  
 3. Gestão de oficinas (CRUD e publicação)  
 4. Catálogo e inscrição de alunos  
 
-**Sprint 2:**  
+**Sprint 2 (04/11 - 08/12):**  
 1. Registro de presença e finalização de oficinas  
 2. Geração de certificados em PDF  
 3. Tela de histórico do aluno  
