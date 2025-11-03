@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     if (mounted) {
       const initializeAuth = async () => {
         const token = localStorage.getItem('token');
-        
+      
         if (token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           try {
@@ -47,13 +47,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const formData = new FormData();
-      formData.append('username', email);
-      formData.append('password', password);
-
-      const response = await axios.post('http://localhost:8000/token', formData, {
+      const response = await axios.post('http://localhost:8000/token', {
+        email: email,
+        password: password
+      }, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
       });
       
