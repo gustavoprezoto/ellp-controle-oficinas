@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 import {
   Grid,
   Card,
@@ -8,19 +8,23 @@ import {
   Typography,
   Button,
   Box,
-  CircularProgress
-} from '@mui/material';
-import { useAuth } from '../../app/contexts/AuthContext';
-import Layout from '../../components/Layout/Layout';
-import Link from 'next/link';
+  CircularProgress,
+} from "@mui/material";
+import { useAuth } from "../../app/contexts/AuthContext";
+import Layout from "../../components/Layout/Layout";
+import Link from "next/link";
 
 const DashboardPage = () => {
   const { user, loading } = useAuth();
-  const teste = "teste";
   if (loading) {
     return (
       <Layout>
-        <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="200px"
+        >
           <CircularProgress />
         </Box>
       </Layout>
@@ -32,13 +36,13 @@ const DashboardPage = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
-      
+
       <Typography variant="h6" color="textSecondary" gutterBottom>
         Bem-vindo, {"João"}!
       </Typography>
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
-        {(teste || teste) && (
+        {(user?.role === "professor" || user?.role === "admin") && (
           <>
             <Grid item xs={12} sm={6} md={4}>
               <Card>
@@ -78,7 +82,7 @@ const DashboardPage = () => {
           </>
         )}
 
-        {teste && (
+        {user?.role === "aluno" && (
           <Grid item xs={12} sm={6} md={4}>
             <Card>
               <CardContent>
@@ -98,7 +102,7 @@ const DashboardPage = () => {
           </Grid>
         )}
 
-        {teste && (
+        {user?.role === "admin" && (
           <Grid item xs={12} sm={6} md={4}>
             <Card>
               <CardContent>
