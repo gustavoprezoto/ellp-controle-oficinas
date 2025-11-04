@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Typography,
   Table,
@@ -12,18 +13,18 @@ import {
   Button,
   Chip,
   Box,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Edit, Visibility, Delete } from '@mui/icons-material';
 import { workshopsAPI } from '../../../services/api';
 import Layout from '../../../components/Layout/Layout';
 import Link from 'next/link';
 
-const MyWorkshops = () => {
+export default function MyWorkshopsPage() {
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetchWorkshops();
@@ -43,11 +44,11 @@ const MyWorkshops = () => {
   const handleDelete = async (workshopId) => {
     if (window.confirm('Tem certeza que deseja excluir esta oficina?')) {
       try {
-        // Implementar delete
         await workshopsAPI.delete(workshopId);
         fetchWorkshops();
       } catch (error) {
         console.error('Error deleting workshop:', error);
+        alert('Erro ao excluir oficina');
       }
     }
   };
@@ -55,7 +56,9 @@ const MyWorkshops = () => {
   if (loading) {
     return (
       <Layout>
-        <Typography>Carregando...</Typography>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+        </Box>
       </Layout>
     );
   }
@@ -66,11 +69,13 @@ const MyWorkshops = () => {
         <Typography variant="h4">
           Minhas Oficinas
         </Typography>
-        <Link href="/workshops/create" passHref>
-          <Button variant="contained" color="primary">
-            Nova Oficina
-          </Button>
-        </Link>
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => router.push('/workshops/create')}
+        >
+          Nova Oficina
+        </Button>
       </Box>
 
       <TableContainer component={Paper}>
@@ -104,24 +109,22 @@ const MyWorkshops = () => {
                 <TableCell>
                   <IconButton 
                     size="small" 
-                    component={Link} 
-                    href={`/workshops/${workshop.id}`}
+                    onClick={() => router.push(`/workshops/${workshop.id}`)}
                   >
-                    <VisibilityIcon />
+                    <Visibility />
                   </IconButton>
                   <IconButton 
                     size="small" 
-                    component={Link} 
-                    href={`/workshops/${workshop.id}/edit`}
+                    onClick={() => router.push(`/workshops/edit/${workshop.id}`)}
                   >
-                    <EditIcon />
+                    <Edit />
                   </IconButton>
                   <IconButton 
                     size="small" 
                     onClick={() => handleDelete(workshop.id)}
                     color="error"
                   >
-                    <DeleteIcon />
+                    <Delete />
                   </IconButton>
                 </TableCell>
               </TableRow>
@@ -135,15 +138,16 @@ const MyWorkshops = () => {
           <Typography variant="h6" color="textSecondary">
             Você ainda não criou nenhuma oficina
           </Typography>
-          <Link href="/workshops/create" passHref>
-            <Button variant="contained" color="primary" sx={{ mt: 2 }}>
-              Criar Primeira Oficina
-            </Button>
-          </Link>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            sx={{ mt: 2 }}
+            onClick={() => router.push('/workshops/create')}
+          >
+            Criar Primeira Oficina
+          </Button>
         </Box>
       )}
     </Layout>
   );
-};
-
-export default MyWorkshops;
+}
