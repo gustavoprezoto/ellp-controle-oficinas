@@ -76,6 +76,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setUser(null);
     delete axios.defaults.headers.common['Authorization'];
+    //preciso de redirecionar para a página de login
+
+    window.location.href = '/login';
   };
 
   const value = {
