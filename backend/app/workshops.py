@@ -77,3 +77,13 @@ def get_workshop_students(db: Session, workshop_id: int):
     if not workshop:
         return None
     return workshop.students
+
+
+def delete_workshop(db: Session, workshop_id: int):
+    db_workshop = get_workshop(db, workshop_id)
+    if not db_workshop:
+        return False
+    
+    db.delete(db_workshop)
+    db.commit()
+    return True
