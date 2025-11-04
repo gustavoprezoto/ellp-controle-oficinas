@@ -97,9 +97,7 @@ O documento descreve o plano de desenvolvimento para a plataforma web destinada 
 
 - **Frontend:** React.js (Hooks, Context API), Material-UI, Axios  
 - **Backend:** Python + FastAPI  
-- **Banco de Dados:** PostgreSQL  
-
-
+- **Banco de Dados:** PostgreSQL
 
 ### 5️⃣ Cronograma
 
@@ -117,6 +115,9 @@ O documento descreve o plano de desenvolvimento para a plataforma web destinada 
 2. Geração de certificados em PDF  
 3. Tela de histórico do aluno  
 4. Ajustes finais: testes, correções de bugs e melhorias de UX
+
+### 6️⃣ Modelo do banco de dados
+<img src="Documentação/Modelo_BD.png" alt="Logo ELLP" width="720">
 
 ## 👨‍💻 Integrantes  
 
