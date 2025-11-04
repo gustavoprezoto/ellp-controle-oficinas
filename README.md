@@ -119,6 +119,48 @@ O documento descreve o plano de desenvolvimento para a plataforma web destinada 
 ### 6️⃣ Modelo do banco de dados
 <img src="Documentação/Modelo_BD.png" alt="Logo ELLP" width="720">
 
+### 7️⃣ Como rodar o projeto
+### Backend (FastAPI)
+
+1. **Pré-requisitos:**
+   - PostgreSQL instalado
+
+2. **Configuração do Banco:**
+   ```bash
+   # Configurar variável de ambiente
+   export DATABASE_URL="postgresql://<usuario>:<senha>@localhost/<nome_do_banco>"
+   
+   # Executar script SQL de inicialização
+   psql -U <usuario> -d <nome_do_banco> -f database_scripts/init.sql
+   ```
+
+3. **Executar Backend:**
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # ou venv\Scripts\activate no Windows
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8145
+   ```
+
+### Frontend (React.js)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse: http://localhost:3000
+
+## 👤 Usuários de Teste
+
+| Email | Senha | Perfil |
+|-------|-------|---------|
+| admin@ellp.com | 123456 | Administrador |
+| professor@ellp.com | 123456 | Professor |
+| aluno@ellp.com | 123456 | Aluno |
+
 ## 👨‍💻 Integrantes  
 
 - João Pedro de Araujo (RA: 2525852)  
