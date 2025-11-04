@@ -13,6 +13,12 @@ from .auth import (
 from . import users
 from . import workshops
 
+# Adicionar import no topo do arquivo
+from . users_crud import (
+    get_user, get_users, create_user, update_user, delete_user,
+    get_users_by_role, authenticate_user
+)
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="ELLP Oficinas API", version="1.0.0")
@@ -154,8 +160,213 @@ def get_workshop_students_endpoint(
 
     return workshops.get_workshop_students(db, workshop_id)
 
+@app.delete("/workshops/{workshop_id}")
+def delete_workshop_endpoint(
+    workshop_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    db_workshop = workshops.get_workshop(db, workshop_id)
+    if not db_workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+    
+    # Verificar se o usuário é o professor da oficina ou admin
+    if db_workshop.professor_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    success = workshops.delete_workshop(db, workshop_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+    
+    return {"message": "Workshop deleted successfully"}
 
+
+@app.delete("/workshops/{workshop_id}/enroll")
+def unenroll_from_workshop(
+    workshop_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != "aluno":
+        raise HTTPException(status_code=403, detail="Only students can unenroll from workshops")
+    
+    workshop = workshops.get_workshop(db, workshop_id)
+    if not workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+    
+    # Verificar se o aluno está inscrito
+    if not any(student.id == current_user.id for student in workshop.students):
+        raise HTTPException(status_code=400, detail="Student is not enrolled in this workshop")
+    
+    # Remover aluno da oficina
+    workshop.students = [student for student in workshop.students if student.id != current_user.id]
+    db.commit()
+    
+    return {"message": "Successfully unenrolled from workshop"}
+
+@app.get("/users/me/enrollments", response_model=List[schemas.Workshop])
+def get_my_enrollments(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Retorna todas as oficinas em que o usuário atual está inscrito"""
+    if current_user.role != "aluno":
+        raise HTTPException(status_code=403, detail="Only students can view enrollments")
+    
+    # Buscar o usuário com as relações carregadas
+    db_user = db.query(models.User).options(
+        selectinload(models.User.workshops_enrolled)
+    ).filter(models.User.id == current_user.id).first()
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    print(f"Usuário {db_user.id} está inscrito em {len(db_user.workshops_enrolled)} oficinas")
+    
+    # Retorna apenas oficinas publicadas
+    enrolled_workshops = [workshop for workshop in db_user.workshops_enrolled if workshop.is_published]
+    
+    return enrolled_workshops
+
+@app.get("/users/me/enrollments-direct")
+def get_my_enrollments_direct(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Método alternativo usando query direta na tabela workshop_enrollments"""
+    
+    # Query direta na tabela de associação
+    enrollment_query = db.query(models.Workshop).join(
+        models.workshop_enrollments,
+        models.Workshop.id == models.workshop_enrollments.c.workshop_id
+    ).filter(
+        models.workshop_enrollments.c.user_id == current_user.id
+    )
+    
+    workshops = enrollment_query.all()
+    print(f"Query direta: usuário {current_user.id} está em {len(workshops)} oficinas")
+    
+    return workshops
+
+
+@app.get("/debug/enrollments")
+def debug_enrollments(db: Session = Depends(get_db)):
+    """Endpoint de debug para ver todas as inscrições"""
+    from sqlalchemy import text
+    
+    # Ver todas as inscrições na tabela workshop_enrollments
+    result = db.execute(text("SELECT * FROM workshop_enrollments"))
+    enrollments = []
+    for row in result:
+        enrollments.append({
+            'user_id': row[0],
+            'workshop_id': row[1]
+        })
+    
+    # Ver todos os usuários
+    users = db.query(models.User).all()
+    user_list = [{'id': u.id, 'name': u.name, 'email': u.email, 'role': u.role} for u in users]
+    
+    # Ver todas as oficinas
+    workshops = db.query(models.Workshop).all()
+    workshop_list = [{'id': w.id, 'title': w.title, 'professor_id': w.professor_id} for w in workshops]
+    
+    return {
+        'enrollments': enrollments,
+        'users': user_list,
+        'workshops': workshop_list
+    }
+
+    # Get all users
+@app.get("/users/", response_model=List[schemas.User])
+def get_users(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    users = users_crud.get_users(db, skip=skip, limit=limit)
+    return users
+
+# Update user
+@app.put("/users/{user_id}", response_model=schemas.User)
+def update_user(
+    user_id: int,
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    db_user = users_crud.get_user(db, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    updated_user = users_crud.update_user(db, user_id, user_update)
+    return updated_user
+
+# Delete user
+@app.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    if current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    success = users_crud.delete_user(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User deleted successfully"}
+
+# Get student enrollments
+@app.get("/users/{user_id}/enrollments", response_model=List[schemas.Workshop])
+def get_student_enrollments(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Buscar usuário com suas inscrições
+    db_user = db.query(models.User).options(
+        selectinload(models.User.workshops_enrolled)
+    ).filter(models.User.id == user_id).first()
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if db_user.role != "aluno":
+        raise HTTPException(status_code=400, detail="User is not a student")
+    
+    return db_user.workshops_enrolled
+
+
+# Get students only
+@app.get("/users/students/", response_model=List[schemas.User])
+def get_students(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    students = users_crud.get_users_by_role(db, role="aluno", skip=skip, limit=limit)
+    return students
+    
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8145)

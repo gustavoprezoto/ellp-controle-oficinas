@@ -1,6 +1,6 @@
-"use client"; // ← Adicione esta linha no topo
-
-import React, { useState } from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Typography,
   TextField,
@@ -9,13 +9,17 @@ import {
   Box,
   FormControlLabel,
   Checkbox,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
-import { workshopsAPI } from '../../../services/api';
-import Layout from '../../../components/Layout/Layout';
-import { useRouter } from 'next/navigation'; // ← Mudou para next/navigation
+import { workshopsAPI } from '../../../../services/api';
+import Layout from '../../../../components/Layout/Layout';
 
-const CreateWorkshop = () => {
+export default function EditWorkshopPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id;
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -27,9 +31,50 @@ const CreateWorkshop = () => {
     schedule: '',
     is_published: false
   });
-  const [error, setError] = useState('');
+  
   const [loading, setLoading] = useState(false);
-  const router = useRouter(); // ← Agora vem de next/navigation
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Buscar dados da oficina
+  useEffect(() => {
+    if (id) {
+      fetchWorkshop();
+    }
+  }, [id]);
+
+  const fetchWorkshop = async () => {
+    try {
+      setFetching(true);
+      const response = await workshopsAPI.get(id);
+      const workshop = response.data;
+      
+      // Format dates for datetime-local input
+      const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toISOString().slice(0, 16);
+      };
+
+      setFormData({
+        title: workshop.title || '',
+        description: workshop.description || '',
+        theme: workshop.theme || '',
+        max_students: workshop.max_students || 20,
+        prerequisites: workshop.prerequisites || '',
+        start_date: formatDateForInput(workshop.start_date),
+        end_date: formatDateForInput(workshop.end_date),
+        schedule: workshop.schedule || '',
+        is_published: workshop.is_published || false
+      });
+    } catch (error) {
+      console.error('Error fetching workshop:', error);
+      setError('Erro ao carregar oficina');
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,27 +88,60 @@ const CreateWorkshop = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      await workshopsAPI.create(formData);
-      router.push('/workshops/my-workshops');
+      // Preparar dados para envio
+      const submitData = {
+        ...formData,
+        max_students: parseInt(formData.max_students),
+        // Converter datas de volta para formato ISO
+        start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null
+      };
+
+      await workshopsAPI.update(id, submitData);
+      setSuccess('Oficina atualizada com sucesso!');
+      
+      // Redirecionar após 2 segundos
+      setTimeout(() => {
+        router.push('/workshops/my-workshops');
+      }, 2000);
+      
     } catch (error) {
-      setError(error.response?.data?.detail || 'Erro ao criar oficina');
+      console.error('Error updating workshop:', error);
+      setError(error.response?.data?.detail || 'Erro ao atualizar oficina');
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) {
+    return (
+      <Layout>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+        </Box>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Criar Nova Oficina
+          Editar Oficina
         </Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
           </Alert>
         )}
 
@@ -106,6 +184,7 @@ const CreateWorkshop = () => {
             value={formData.max_students}
             onChange={handleChange}
             margin="normal"
+            inputProps={{ min: 1 }}
           />
 
           <TextField
@@ -151,6 +230,7 @@ const CreateWorkshop = () => {
             multiline
             rows={3}
             placeholder='{"dias": ["segunda", "quarta"], "horario": "14:00-16:00"}'
+            helperText="Formato JSON com dias da semana e horários"
           /> */}
 
           <FormControlLabel
@@ -162,7 +242,7 @@ const CreateWorkshop = () => {
               />
             }
             label="Publicar oficina"
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, display: 'block' }}
           />
 
           <Box sx={{ mt: 3 }}>
@@ -173,11 +253,12 @@ const CreateWorkshop = () => {
               disabled={loading}
               sx={{ mr: 2 }}
             >
-              {loading ? 'Criando...' : 'Criar Oficina'}
+              {loading ? 'Atualizando...' : 'Atualizar Oficina'}
             </Button>
             <Button
               variant="outlined"
               onClick={() => router.push('/workshops/my-workshops')}
+              disabled={loading}
             >
               Cancelar
             </Button>
@@ -186,6 +267,4 @@ const CreateWorkshop = () => {
       </Paper>
     </Layout>
   );
-};
-
-export default CreateWorkshop;
+}

@@ -18,6 +18,8 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     name: Optional[str] = None
     role: Optional[str] = None
+    password: Optional[str] = None  # Adicionar campo de senha para atualização
+    is_active: Optional[bool] = None
 
 
 class User(UserBase):
@@ -64,7 +66,8 @@ class Workshop(WorkshopBase):
     is_completed: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
-
+    available_spots: Optional[int] = None  # Novo campo
+    
     class Config:
         from_attributes = True
 

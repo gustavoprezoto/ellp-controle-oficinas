@@ -18,7 +18,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
-    role = Column(String(50), nullable=False)  
+    role = Column(String(50), nullable=False)  # admin, professor, aluno
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -35,7 +35,7 @@ class Workshop(Base):
     theme = Column(String(255))
     max_students = Column(Integer, default=20)
     prerequisites = Column(Text)
-    is_published = Column(Boolean, default=False)
+    is_published = Column(Boolean, default=True)
     is_completed = Column(Boolean, default=False)
     professor_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
