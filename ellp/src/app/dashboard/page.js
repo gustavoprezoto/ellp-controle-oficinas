@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   Grid,
   Card,
@@ -13,34 +13,31 @@ import { Assignment, Book, Group, List, ExitToApp } from "@mui/icons-material";
 import { useAuth } from "../../app/contexts/AuthContext";
 import Layout from "../../components/Layout/Layout";
 import { useRouter } from "next/navigation";
-import { workshopsAPI } from '../../services/api';
-
+import { workshopsAPI } from "../../services/api";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [workshops, setWorkshops] = React.useState([]);
   const [loadingWorkshops, setLoadingWorkshops] = React.useState(true);
- 
+
   useEffect(() => {
-  const fetchWorkshops = async () => {
-    try {
-      setLoadingWorkshops(true);
-      const response = await workshopsAPI.getMyWorkshops();
-      setWorkshops(response.data);
-    } catch (error) {
-      console.error('Error fetching workshops:', error);
-      // Optional: Set error state
-      setError(error.message);
-    } finally {
-      setLoadingWorkshops(false);
-    }
-  };
+    const fetchWorkshops = async () => {
+      try {
+        setLoadingWorkshops(true);
+        const response = await workshopsAPI.getMyWorkshops();
+        setWorkshops(response.data);
+      } catch (error) {
+        console.error("Error fetching workshops:", error);
+        // Optional: Set error state
+        setError(error.message);
+      } finally {
+        setLoadingWorkshops(false);
+      }
+    };
 
-  fetchWorkshops();
-}, []); // Add dependencies if needed
-
-  console.log('teste',workshops);
+    fetchWorkshops();
+  }, []); // Add dependencies if needed
 
   // Mostrar loading enquanto verifica autenticação
   if (loading) {
@@ -334,8 +331,6 @@ const Dashboard = () => {
             </>
           )}
 
-          {console.log(user)}
-
           {(user.role === "professor" || user.role === "admin") && (
             <>
               <Grid item xs={12} sm={4}>
@@ -343,7 +338,7 @@ const Dashboard = () => {
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom>
                       Minhas Oficinas
-                    </Typography>                  
+                    </Typography>
                     <Typography variant="h4">{workshops.length}</Typography>
                     <Button
                       size="small"
@@ -355,43 +350,8 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} sm={4}>
-                <Card>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Alunos Ativos
-                    </Typography>
-                    <Typography variant="h4">0</Typography>
-                    <Button
-                      size="small"
-                      onClick={() => router.push("/workshops/my-workshops")}
-                      sx={{ mt: 1 }}
-                    >
-                      Ver Detalhes
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
             </>
           )}
-
-          <Grid item xs={12} sm={4}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  Próximas Atividades
-                </Typography>
-                <Typography variant="h4">0</Typography>
-                <Button
-                  size="small"
-                  onClick={() => router.push("/calendar")}
-                  sx={{ mt: 1 }}
-                >
-                  Ver Calendário
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
         </Grid>
       </Box>
     </Layout>

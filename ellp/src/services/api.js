@@ -24,18 +24,43 @@ export const usersAPI = {
 export const workshopsAPI = {
   getAll: (publishedOnly = false) =>
     axios.get(`${API_BASE_URL}/workshops/?published_only=${publishedOnly}`),
-  getMyWorkshops: () => axios.get(`${API_BASE_URL}/workshops/my-workshops`),
-  get: (workshopId) => axios.get(`${API_BASE_URL}/workshops/${workshopId}`),
+
+  getMyWorkshops: () =>
+    axios.get(`${API_BASE_URL}/workshops/my-workshops`),
+
+  get: (workshopId) =>
+    axios.get(`${API_BASE_URL}/workshops/${workshopId}`),
+
   create: (workshopData) =>
     axios.post(`${API_BASE_URL}/workshops/`, workshopData),
+
   update: (workshopId, workshopData) =>
     axios.put(`${API_BASE_URL}/workshops/${workshopId}`, workshopData),
+
   enroll: (workshopId) =>
     axios.post(`${API_BASE_URL}/workshops/${workshopId}/enroll`),
+
   unenroll: (workshopId) =>
     axios.delete(`${API_BASE_URL}/workshops/${workshopId}/enroll`),
+
   getStudents: (workshopId) =>
     axios.get(`${API_BASE_URL}/workshops/${workshopId}/students`),
+
   delete: (workshopId) =>
     axios.delete(`${API_BASE_URL}/workshops/${workshopId}`),
+
+  // ---------- CORRIGIDO ----------
+  getAttendance: (workshopId) =>
+    axios.get(`${API_BASE_URL}/workshops/${workshopId}/attendance`),
+
+  updateAttendance: (workshopId, data) =>
+    axios.put(`${API_BASE_URL}/workshops/${workshopId}/attendance`, data),
+
+  complete: (workshopId) =>
+    axios.post(`${API_BASE_URL}/workshops/${workshopId}/complete`),
+
+  downloadCertificate: (workshopId) =>
+    axios.get(`${API_BASE_URL}/workshops/${workshopId}/certificate`, {
+      responseType: "blob",
+    }),
 };

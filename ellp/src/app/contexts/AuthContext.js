@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
         if (token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           try {
-            const response = await axios.get('http://localhost:8000/users/me');
+            const response = await axios.get('http://localhost:8145/users/me');
             setUser(response.data);
           } catch (error) {
             console.error('Error fetching user:', error);
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:8000/token', {
+      const response = await axios.post('http://localhost:8145/token', {
         email: email,
         password: password
       }, {
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
-      const userResponse = await axios.get('http://localhost:8000/users/me');
+      const userResponse = await axios.get('http://localhost:8145/users/me');
       setUser(userResponse.data);
       
       return { success: true };
@@ -76,7 +76,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setUser(null);
     delete axios.defaults.headers.common['Authorization'];
-    //preciso de redirecionar para a página de login
 
     window.location.href = '/login';
   };
