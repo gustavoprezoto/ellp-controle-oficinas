@@ -17,6 +17,10 @@ import io
 from fastapi.responses import StreamingResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+
+import datetime
+import os
 
 from . import workshops as workshops_crud
 
@@ -25,6 +29,9 @@ from . users_crud import (
     get_user, get_users, create_user, update_user, delete_user,
     get_users_by_role, authenticate_user
 )
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "..", "static")
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -440,20 +447,53 @@ def complete_workshop_endpoint(
     workshop = workshops_crud.mark_workshop_completed(db, workshop_id)
     return workshop
 
-def generate_certificate_pdf(student_name: str, workshop_title: str) -> io.BytesIO:
+
+def generate_certificate_pdf(
+    student_name: str,
+    workshop_title: str,
+    start_date: str,
+) -> io.BytesIO:
+
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    c.setFont("Helvetica-Bold", 24)
-    c.drawCentredString(width / 2, height - 100, "Certificado de Conclusão")
+    # ===== HEADER: LOGO UTFPR =====
+    try:
+        logo_path = os.path.join(STATIC_DIR, "utfpr_logo.png")
+        print(logo_path)
+        logo = ImageReader(logo_path)
+        c.drawImage(logo, 50, height - 150, width=120, preserveAspectRatio=True)
+    except Exception as e:
+        print("Erro carregando logo:", e)
 
+    # ===== TÍTULO =====
+    c.setFont("Helvetica-Bold", 28)
+    c.drawCentredString(width / 2, height - 120, "Certificado de Conclusão")
+
+    # ===== CORPO DO CERTIFICADO =====
     c.setFont("Helvetica", 14)
-    text = f"Certificamos que {student_name} concluiu a oficina \"{workshop_title}\"."
-    c.drawCentredString(width / 2, height - 160, text)
+    text = (
+        f"Certificamos que {student_name} concluiu a oficina\n"
+        f"\"{workshop_title}\", promovida pelo projeto de extensão ELLP\n"
+        f"(Ensino Lúdico de Lógica e Programação) da Universidade Tecnológica Federal do\n"
+        f"Paraná - Campus Cornélio Procópio, realizada em {start_date}."
+    )
 
-    c.setFont("Helvetica", 10)
-    c.drawCentredString(width / 2, 80, "ELLP - Controle de Oficinas")
+    text_y = height - 220
+    for line in text.split("\n"):
+        c.drawCentredString(width / 2, text_y, line)
+        text_y -= 22
+
+    # ===== DATA E LOCAL =====
+    today = datetime.datetime.now().strftime("%d/%m/%Y")
+
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(width / 2, height - 350, f"Cornélio Procópio, {today}.")
+
+    # ===== RODAPÉ =====
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, 80, "Ensino Lúdico de Lógica e Programação")
 
     c.showPage()
     c.save()
@@ -484,7 +524,7 @@ def get_certificate_endpoint(
             detail="Student does not meet minimum attendance requirement (50%) or workshop not completed",
         )
 
-    pdf_buffer = generate_certificate_pdf(current_user.name, workshop.title)
+    pdf_buffer = generate_certificate_pdf(current_user.name, workshop.title, workshop.start_date)
     filename = f"certificado_oficina_{workshop_id}_{current_user.id}.pdf"
 
     return StreamingResponse(
