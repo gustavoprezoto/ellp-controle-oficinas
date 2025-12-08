@@ -16,14 +16,14 @@ import {
   IconButton,
   CircularProgress
 } from '@mui/material';
-import { Edit, Visibility, Delete } from '@mui/icons-material';
+import { Edit, Visibility, Delete, CheckCircle } from '@mui/icons-material';
 import { workshopsAPI } from '../../../services/api';
 import Layout from '../../../components/Layout/Layout';
-import Link from 'next/link';
 
 export default function MyWorkshopsPage() {
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [completing, setCompleting] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,6 +50,21 @@ export default function MyWorkshopsPage() {
         console.error('Error deleting workshop:', error);
         alert('Erro ao excluir oficina');
       }
+    }
+  };
+
+  const handleCompleteWorkshop = async (id) => {
+    if (!window.confirm('Deseja marcar esta oficina como concluída?')) return;
+
+    try {
+      setCompleting(id);
+      await workshopsAPI.complete(id);
+      await fetchWorkshops();
+    } catch (error) {
+      console.error('Erro ao concluir oficina', error);
+      alert('Erro ao marcar oficina como concluída.');
+    } finally {
+      setCompleting(null);
     }
   };
 
@@ -86,15 +101,18 @@ export default function MyWorkshopsPage() {
               <TableCell>Tema</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Vagas</TableCell>
-              <TableCell>Data de Criação</TableCell>
+              <TableCell>Criada em</TableCell>
+              <TableCell>Concluída?</TableCell>
               <TableCell>Ações</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {workshops.map((workshop) => (
               <TableRow key={workshop.id}>
                 <TableCell>{workshop.title}</TableCell>
                 <TableCell>{workshop.theme}</TableCell>
+
                 <TableCell>
                   <Chip 
                     label={workshop.is_published ? 'Publicada' : 'Rascunho'} 
@@ -102,10 +120,34 @@ export default function MyWorkshopsPage() {
                     size="small"
                   />
                 </TableCell>
+
                 <TableCell>{workshop.max_students}</TableCell>
+
                 <TableCell>
                   {new Date(workshop.created_at).toLocaleDateString('pt-BR')}
                 </TableCell>
+
+                {/* COLUNA NOVA: Concluída */}
+                <TableCell>
+                  {workshop.is_completed ? (
+                    <Chip 
+                      color="success"
+                      label="Concluída"
+                      icon={<CheckCircle />}
+                      size="small"
+                    />
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleCompleteWorkshop(workshop.id)}
+                      disabled={completing === workshop.id}
+                    >
+                      {completing === workshop.id ? 'Concluindo...' : 'Concluir'}
+                    </Button>
+                  )}
+                </TableCell>
+
                 <TableCell>
                   <IconButton 
                     size="small" 
@@ -113,12 +155,14 @@ export default function MyWorkshopsPage() {
                   >
                     <Visibility />
                   </IconButton>
+
                   <IconButton 
                     size="small" 
                     onClick={() => router.push(`/workshops/edit/${workshop.id}`)}
                   >
                     <Edit />
                   </IconButton>
+
                   <IconButton 
                     size="small" 
                     onClick={() => handleDelete(workshop.id)}
@@ -127,6 +171,7 @@ export default function MyWorkshopsPage() {
                     <Delete />
                   </IconButton>
                 </TableCell>
+
               </TableRow>
             ))}
           </TableBody>
