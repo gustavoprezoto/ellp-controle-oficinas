@@ -49,6 +49,12 @@ class Workshop(Base):
     students = relationship("User", secondary=workshop_enrollments, back_populates="workshops_enrolled")
     sessions = relationship("Session", back_populates="workshop")
 
+    attendance_summaries = relationship(
+        "AttendanceSummary",
+        back_populates="workshop",
+        cascade="all, delete-orphan"
+    )
+
 
 class Session(Base):
     __tablename__ = "sessions"
@@ -71,3 +77,15 @@ class Attendance(Base):
     is_present = Column(Boolean, default=False)
 
     session = relationship("Session", back_populates="attendances")
+
+class AttendanceSummary(Base):
+    __tablename__ = "attendance_summaries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    workshop_id = Column(Integer, ForeignKey("workshops.id"), index=True)
+    student_id = Column(Integer, ForeignKey("users.id"), index=True)
+    total_classes = Column(Integer, default=0)
+    absences = Column(Integer, default=0)
+
+    workshop = relationship("Workshop", back_populates="attendance_summaries")
+    student = relationship("User")

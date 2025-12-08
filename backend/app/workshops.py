@@ -87,3 +87,114 @@ def delete_workshop(db: Session, workshop_id: int):
     db.delete(db_workshop)
     db.commit()
     return True
+
+def get_or_create_attendance_summary(db: Session, workshop_id: int, student_id: int) -> models.AttendanceSummary:
+    summary = (
+        db.query(models.AttendanceSummary)
+        .filter(
+            models.AttendanceSummary.workshop_id == workshop_id,
+            models.AttendanceSummary.student_id == student_id,
+        )
+        .first()
+    )
+    if not summary:
+        summary = models.AttendanceSummary(
+            workshop_id=workshop_id,
+            student_id=student_id,
+            total_classes=0,
+            absences=0,
+        )
+        db.add(summary)
+        db.commit()
+        db.refresh(summary)
+    return summary
+
+
+def get_workshop_attendance(db: Session, workshop_id: int) -> list[schemas.WorkshopAttendanceStudent]:
+    workshop = get_workshop(db, workshop_id)
+    if not workshop:
+        return None
+
+    # mapa student_id -> summary
+    summaries = {
+        s.student_id: s
+        for s in db.query(models.AttendanceSummary)
+        .filter(models.AttendanceSummary.workshop_id == workshop_id)
+        .all()
+    }
+
+    result = []
+    for student in workshop.students:
+        summary = summaries.get(student.id)
+        total_classes = summary.total_classes if summary else 0
+        absences = summary.absences if summary else 0
+
+        if total_classes > 0:
+            presence_percentage = (total_classes - absences) / float(total_classes)
+        else:
+            presence_percentage = 0.0
+
+        result.append(
+            schemas.WorkshopAttendanceStudent(
+                student_id=student.id,
+                student_name=student.name,
+                total_classes=total_classes,
+                absences=absences,
+                presence_percentage=presence_percentage,
+            )
+        )
+    return result
+
+
+def update_workshop_attendance(
+    db: Session,
+    workshop_id: int,
+    attendance_update: schemas.WorkshopAttendanceUpdateRequest,
+):
+    workshop = get_workshop(db, workshop_id)
+    if not workshop:
+        return None
+
+    for item in attendance_update.students:
+        summary = get_or_create_attendance_summary(
+            db, workshop_id=workshop_id, student_id=item.student_id
+        )
+        summary.total_classes = max(0, item.total_classes)
+        summary.absences = max(0, item.absences)
+        db.add(summary)
+
+    db.commit()
+    return get_workshop_attendance(db, workshop_id)
+
+
+def mark_workshop_completed(db: Session, workshop_id: int):
+    workshop = get_workshop(db, workshop_id)
+    if not workshop:
+        return None
+    workshop.is_completed = True
+    db.add(workshop)
+    db.commit()
+    db.refresh(workshop)
+    return workshop
+
+
+def user_can_get_certificate(db: Session, workshop_id: int, user_id: int) -> bool:
+    workshop = get_workshop(db, workshop_id)
+    if not workshop or not workshop.is_completed:
+        return False
+
+    summary = (
+        db.query(models.AttendanceSummary)
+        .filter(
+            models.AttendanceSummary.workshop_id == workshop_id,
+            models.AttendanceSummary.student_id == user_id,
+        )
+        .first()
+    )
+    if not summary or summary.total_classes <= 0:
+        return False
+
+    presence_percentage = (summary.total_classes - summary.absences) / float(
+        summary.total_classes
+    )
+    return presence_percentage >= 0.5

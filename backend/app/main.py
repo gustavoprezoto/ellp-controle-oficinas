@@ -13,6 +13,13 @@ from .auth import (
 from . import users
 from . import workshops
 
+import io
+from fastapi.responses import StreamingResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+
+from . import workshops as workshops_crud
+
 # Adicionar import no topo do arquivo
 from . users_crud import (
     get_user, get_users, create_user, update_user, delete_user,
@@ -365,6 +372,127 @@ def get_students(
     
     students = users_crud.get_users_by_role(db, role="aluno", skip=skip, limit=limit)
     return students
+
+@app.get(
+    "/workshops/{workshop_id}/attendance",
+    response_model=list[schemas.WorkshopAttendanceStudent],
+)
+def get_workshop_attendance_endpoint(
+    workshop_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    # apenas professor da oficina ou admin
+    workshop = workshops_crud.get_workshop(db, workshop_id)
+    if not workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+    if current_user.role not in ["admin", "professor"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if current_user.role == "professor" and workshop.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    attendance = workshops_crud.get_workshop_attendance(db, workshop_id)
+    return attendance
+
+
+@app.put(
+    "/workshops/{workshop_id}/attendance",
+    response_model=list[schemas.WorkshopAttendanceStudent],
+)
+def update_workshop_attendance_endpoint(
+    workshop_id: int,
+    attendance_update: schemas.WorkshopAttendanceUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    workshop = workshops_crud.get_workshop(db, workshop_id)
+    if not workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+    if current_user.role not in ["admin", "professor"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if current_user.role == "professor" and workshop.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    updated = workshops_crud.update_workshop_attendance(
+        db, workshop_id, attendance_update
+    )
+    return updated
+
+
+@app.post(
+    "/workshops/{workshop_id}/complete",
+    response_model=schemas.Workshop,
+)
+def complete_workshop_endpoint(
+    workshop_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    workshop = workshops_crud.get_workshop(db, workshop_id)
+    if not workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+
+    if current_user.role not in ["admin", "professor"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if current_user.role == "professor" and workshop.professor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    workshop = workshops_crud.mark_workshop_completed(db, workshop_id)
+    return workshop
+
+def generate_certificate_pdf(student_name: str, workshop_title: str) -> io.BytesIO:
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 24)
+    c.drawCentredString(width / 2, height - 100, "Certificado de Conclusão")
+
+    c.setFont("Helvetica", 14)
+    text = f"Certificamos que {student_name} concluiu a oficina \"{workshop_title}\"."
+    c.drawCentredString(width / 2, height - 160, text)
+
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(width / 2, 80, "ELLP - Controle de Oficinas")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+@app.get("/workshops/{workshop_id}/certificate")
+def get_certificate_endpoint(
+    workshop_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    # apenas aluno matriculado pode pedir certificado
+    print(current_user)
+    workshop = workshops_crud.get_workshop(db, workshop_id)
+    if not workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+
+    if current_user not in workshop.students and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enrolled in this workshop")
+
+    # checa presença mínima de 50%
+    if not workshops_crud.user_can_get_certificate(
+        db, workshop_id, current_user.id
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Student does not meet minimum attendance requirement (50%) or workshop not completed",
+        )
+
+    pdf_buffer = generate_certificate_pdf(current_user.name, workshop.title)
+    filename = f"certificado_oficina_{workshop_id}_{current_user.id}.pdf"
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
     
 if __name__ == "__main__":
     import uvicorn

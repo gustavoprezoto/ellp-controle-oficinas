@@ -169,6 +169,26 @@ class WorkshopAttendanceReport(BaseModel):
     total_sessions: int
     students: List[StudentAttendanceReport]
 
+class WorkshopAttendanceStudent(BaseModel):
+    student_id: int
+    student_name: str
+    total_classes: int
+    absences: int
+    presence_percentage: float
+
+    class Config:
+        orm_mode = True
+
+
+class WorkshopAttendanceStudentUpdate(BaseModel):
+    student_id: int
+    total_classes: int
+    absences: int
+
+
+class WorkshopAttendanceUpdateRequest(BaseModel):
+    students: List[WorkshopAttendanceStudentUpdate]
+
 
 # Update forward references
 Session.update_forward_refs()
