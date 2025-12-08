@@ -123,6 +123,27 @@ export default function WorkshopDetailPage() {
     });
   };
 
+  const handleDownloadCertificate = async () => {
+  try {
+    const res = await workshopsAPI.downloadCertificate(id);
+
+    // Criar link temporário
+    const blob = new Blob([res.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `certificado-${id}.pdf`;
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Erro ao baixar certificado:", error);
+    alert("Não foi possível baixar o certificado.");
+  }
+};
+
+
   const isProfessor =
     workshop &&
     user &&
@@ -213,6 +234,15 @@ export default function WorkshopDetailPage() {
                     Voltar para Minhas Oficinas
                   </Button>
                 </>
+              )}
+              {workshop.is_completed && (
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleDownloadCertificate}
+                  >
+                    Baixar Certificado
+                  </Button>
               )}
             </Box>
           </Paper>
