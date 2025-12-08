@@ -54,6 +54,7 @@ class WorkshopUpdate(BaseModel):
     max_students: Optional[int] = None
     prerequisites: Optional[str] = None
     is_published: Optional[bool] = None
+    is_completed: Optional[bool] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     schedule: Optional[str] = None
@@ -86,3 +87,89 @@ class TokenData(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+# schemas.py (adicione ao final do arquivo)
+# Session Schemas
+class SessionBase(BaseModel):
+    session_date: datetime
+    description: Optional[str] = None
+
+
+class SessionCreate(SessionBase):
+    pass
+
+
+class SessionUpdate(BaseModel):
+    session_date: Optional[datetime] = None
+    description: Optional[str] = None
+
+
+class Session(SessionBase):
+    id: int
+    workshop_id: int
+    attendances: List["Attendance"] = []
+    
+    class Config:
+        from_attributes = True
+
+
+# Attendance Schemas
+class AttendanceBase(BaseModel):
+    is_present: bool = True
+
+
+class AttendanceCreate(AttendanceBase):
+    student_id: int
+
+
+class AttendanceUpdate(AttendanceBase):
+    pass
+
+
+class Attendance(AttendanceBase):
+    id: int
+    session_id: int
+    student_id: int
+    student: Optional["User"] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class AttendanceBulkCreate(BaseModel):
+    attendance: List[AttendanceCreate]
+
+
+# Workshop with sessions
+class WorkshopWithSessions(Workshop):
+    sessions: List[Session] = []
+    students: List[User] = []
+
+
+# Statistics
+class AttendanceStats(BaseModel):
+    total_students: int
+    present_count: int
+    absent_count: int
+    attendance_rate: float
+
+
+class StudentAttendanceReport(BaseModel):
+    student_id: int
+    student_name: str
+    total_sessions: int
+    present_count: int
+    attendance_rate: float
+
+
+class WorkshopAttendanceReport(BaseModel):
+    workshop_id: int
+    workshop_title: str
+    total_sessions: int
+    students: List[StudentAttendanceReport]
+
+
+# Update forward references
+Session.update_forward_refs()
+Attendance.update_forward_refs()
