@@ -1,6 +1,6 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+"use client";
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   Typography,
   Paper,
@@ -15,23 +15,23 @@ import {
   ListItemText,
   Divider,
   CircularProgress,
-  Alert
-} from '@mui/material';
-import { workshopsAPI } from '../../../services/api';
-import Layout from '../../../components/Layout/Layout';
-import { useAuth } from '../../../app/contexts/AuthContext';
-import Link from 'next/link';
+  Alert,
+} from "@mui/material";
+import { workshopsAPI } from "../../../services/api";
+import Layout from "../../../components/Layout/Layout";
+import { useAuth } from "../../../app/contexts/AuthContext";
+import Link from "next/link";
 
 export default function WorkshopDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const id = params.id;
   const [workshop, setWorkshop] = useState(null);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -46,39 +46,47 @@ export default function WorkshopDetailPage() {
       setWorkshop(workshopResponse.data);
 
       // Se o usuário é o professor ou admin, buscar lista de alunos
-      if (user && (user.role === 'professor' || user.role === 'admin')) {
+      if (user && (user.role === "professor" || user.role === "admin")) {
         try {
           const studentsResponse = await workshopsAPI.getStudents(id);
           setStudents(studentsResponse.data);
         } catch (error) {
-          console.error('Error fetching students:', error);
+          console.error("Error fetching students:", error);
         }
       }
     } catch (error) {
-      console.error('Error fetching workshop:', error);
-      setError('Erro ao carregar dados da oficina');
+      console.error("Error fetching workshop:", error);
+      setError("Erro ao carregar dados da oficina");
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Não definida';
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!dateString) return "Não definida";
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const isProfessor = workshop && user && (workshop.professor_id === user.id || user.role === 'admin');
+  const isProfessor =
+    workshop &&
+    user &&
+    (workshop.professor_id === user.id || user.role === "admin");
 
   if (loading) {
     return (
       <Layout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="200px"
+        >
           <CircularProgress />
         </Box>
       </Layout>
@@ -107,15 +115,22 @@ export default function WorkshopDetailPage() {
         {/* Informações da Oficina */}
         <Grid item xs={12} md={8}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                mb: 2,
+              }}
+            >
               <Typography variant="h4" gutterBottom>
                 {workshop.title}
               </Typography>
-              
+
               <Box>
-                <Chip 
-                  label={workshop.is_published ? 'Publicada' : 'Rascunho'} 
-                  color={workshop.is_published ? 'success' : 'default'}
+                <Chip
+                  label={workshop.is_published ? "Publicada" : "Rascunho"}
+                  color={workshop.is_published ? "success" : "default"}
                   sx={{ mr: 1 }}
                 />
                 {workshop.is_completed && (
@@ -125,9 +140,9 @@ export default function WorkshopDetailPage() {
             </Box>
 
             {workshop.theme && (
-              <Chip 
-                label={workshop.theme} 
-                color="primary" 
+              <Chip
+                label={workshop.theme}
+                color="primary"
                 variant="outlined"
                 sx={{ mb: 2 }}
               />
@@ -198,15 +213,15 @@ export default function WorkshopDetailPage() {
                 <Typography variant="h6" gutterBottom>
                   Cronograma
                 </Typography>
-                <Typography 
-                  variant="body1" 
-                  component="pre" 
-                  sx={{ 
-                    fontFamily: 'inherit',
-                    backgroundColor: 'grey.100',
+                <Typography
+                  variant="body1"
+                  component="pre"
+                  sx={{
+                    fontFamily: "inherit",
+                    backgroundColor: "grey.100",
                     p: 2,
                     borderRadius: 1,
-                    overflow: 'auto'
+                    overflow: "auto",
                   }}
                 >
                   {workshop.schedule}
@@ -215,29 +230,55 @@ export default function WorkshopDetailPage() {
             )}
 
             {/* Botões de Ação */}
-            <Box sx={{ mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ mt: 3, display: "flex", gap: 2, flexWrap: "wrap" }}>
               {isProfessor && (
                 <>
-                  <Link href={`/workshops/edit/${workshop.id}`} passHref legacyBehavior>
+                  <Link
+                    href={`/workshops/edit/${workshop.id}`}
+                    passHref
+                    legacyBehavior
+                  >
                     <Button variant="contained" color="primary">
                       Editar Oficina
                     </Button>
                   </Link>
-                  
-                  <Button 
-                    variant="outlined" 
+
+                  {/* criar um botão para concluir a oficina */}
+                  {!workshop.is_completed && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={async () => {
+                        try {
+                          await workshopsAPI.update(workshop.id, {
+                            is_completed: true,
+                            is_published: false,
+                          });
+                          //refresh the page to show the updated status
+                          window.location.reload();
+                        } catch (error) {
+                          console.error("Error completing workshop:", error);
+                        }
+                      }}
+                    >
+                      Marcar como Concluída
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="outlined"
                     color="secondary"
-                    onClick={() => router.push('/workshops/my-workshops')}
+                    onClick={() => router.push("/workshops/my-workshops")}
                   >
                     Voltar para Minhas Oficinas
                   </Button>
                 </>
               )}
 
-              {user?.role === 'aluno' && (
-                <Button 
-                  variant="outlined" 
-                  onClick={() => router.push('/workshops/catalog')}
+              {user?.role === "aluno" && (
+                <Button
+                  variant="outlined"
+                  onClick={() => router.push("/workshops/catalog")}
                 >
                   Voltar para Catálogo
                 </Button>
@@ -281,7 +322,7 @@ export default function WorkshopDetailPage() {
               <Typography variant="body2" color="textSecondary">
                 Esta oficina é ministrada pelo professor responsável.
               </Typography>
-              
+
               {isProfessor && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2">
