@@ -139,7 +139,7 @@ export default function WorkshopDetailPage() {
     window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Erro ao baixar certificado:", error);
-    alert("Não foi possível baixar o certificado.");
+    alert("Não foi possível baixar o certificado. Você concluiu a oficina?");
   }
 };
 
