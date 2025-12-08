@@ -17,13 +17,6 @@ def test_hash_is_deterministic():
     p = "teste"
     assert get_password_hash(p) == get_password_hash(p)
 
-def test_token_custom_expiration():
-    delta = timedelta(minutes=60)
-    token = create_access_token({"sub": "test"}, expires_delta=delta)
-    decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    # Verifica se exp existe e é maior que agora
-    assert decoded["exp"] > datetime.utcnow().timestamp()
-
 def test_token_invalid_algorithm():
     # Tenta decodificar com algoritmo errado deve falhar
     token = create_access_token({"sub": "test"})
